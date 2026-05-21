@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>امتياز - الحديث التحليلي</title>
+    <style>
+        :root { 
+            --primary: #1e4d2b; --accent: #c5a059; --success: #27ae60; --light: #fdfdfd;
+            --bg-body: #f0f2f0; --bg-container: #ffffff; --text-main: #333333;
+            --input-bg: #ffffff; --input-border: #eeeeee;
+        }
+        body.dark-mode {
+            --bg-body: #121212; --bg-container: #1e1e1e; --text-main: #e0e0e0;
+            --input-bg: #2d2d2d; --input-border: #444444;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg-body); 
+            color: var(--text-main); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: 0.3s; 
+        }
+        .container { 
+            background: var(--bg-container); width: 100%; max-width: 700px; padding: 30px; border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; border-top: 5px solid var(--accent); position: relative; 
+            display: flex; flex-direction: column;
+        }
+
+        .header-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+        
+        .lang-dropdown {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: inline-block;
+            z-index: 100;
+        }
+        
+        .theme-toggle-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--bg-container);
+            color: var(--text-main);
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            border: 1px solid var(--accent);
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        .dropbtn {
+            background: var(--bg-container);
+            color: var(--text-main);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border: 1px solid var(--accent);
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            left: 0;
+            background-color: var(--bg-container);
+            min-width: 90px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            border: 1px solid var(--input-border);
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .dropdown-content button {
+            color: var(--text-main);
+            padding: 8px 12px;
+            display: block;
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .dropdown-content button:hover {
+            background-color: rgba(197, 160, 89, 0.2);
+        }
+        .show { display: block; }
+
+        .brand { text-align: center; }
+        .brand h1 { color: var(--primary); margin: 0; font-size: 2.2rem; }
+        
+        input, select { width: 100%; padding: 12px; border: 2px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 10px; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1rem; margin-top: 10px; transition: 0.3s; }
+        .btn-start { background: #2c3e50; color: white; }
+        .btn-reveal { background: var(--accent); color: white; }
+        .btn-correct { background: var(--success); color: white; }
+        .btn-wrong { background: #e74c3c; color: white; }
+        
+        #timer-container { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-bottom: 15px; overflow: hidden; display: none; }
+        #timer-bar { width: 100%; height: 100%; background: var(--accent); transition: width 1s linear; }
+
+        .settings-box { background: rgba(0,0,0,0.05); padding: 15px; border-radius: 15px; margin: 15px 0; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: center; }
+        
+        .switch-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        body[lang="ar"] input:checked + .slider:before {
+            transform: translateX(-20px);
+        }
+        body[lang="ar"] .slider:before {
+            left: auto;
+            right: 3px;
+        }
+
+        #quiz-section, #result-section { display: none; text-align: center; }
+        .answer-box { background: rgba(197, 160, 89, 0.1); border-right: 6px solid var(--accent); padding: 20px; margin-top: 20px; display: none; text-align: right; border-radius: 10px; }
+        .eval-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        
+        body[lang="id"], body[lang="en"] { direction: ltr; text-align: left; }
+        body[lang="ar"] { direction: rtl; text-align: right; }
+        body[lang="id"] .answer-box, body[lang="en"] .answer-box { border-right: none; border-left: 6px solid var(--accent); text-align: left; }
+    </style>
+</head>
+<body lang="ar">
+
+<div id="setup-section" class="container">
+    <div class="header-wrapper">
+        <div class="lang-dropdown">
+            <button onclick="toggleLangMenu()" class="dropbtn" id="current-lang-btn">🌐 AR</button>
+            <div id="langDropdown" class="dropdown-content">
+                <button onclick="changeLang('id')">ID</button>
+                <button onclick="changeLang('en')">EN</button>
+                <button onclick="changeLang('ar')">AR</button>
+            </div>
+        </div>
+        
+        <button class="theme-toggle-btn" id="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+
+        <div class="brand">
+            <h1 id="txt-title">امتياز</h1>
+            <p id="txt-subtitle">Platform Murojaah Mandiri</p>
+        </div>
+    </div>
+    
+    <div style="text-align: center; background: rgba(197, 160, 89, 0.05); padding: 20px; border-radius: 15px; margin-bottom: 15px;">
+        <span id="txt-fixed-label" style="font-size: 0.9rem; opacity: 0.7;">المادة الحالية / Maddah:</span>
+        <h2 id="display-maddah-name" style="margin: 5px 0 0 0; color: var(--primary); font-size: 1.6rem;">...</h2>
+    </div>
+    
+    <div class="settings-box">
+        <div class="switch-container" onclick="document.getElementById('timer-toggle').click();">
+            <span id="txt-timer-on" style="font-weight: bold;">تفعيل المؤقت</span>
+            <label class="switch" onclick="event.stopPropagation();">
+                <input type="checkbox" id="timer-toggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="txt-timer-sec">المدة (ثانية):</span>
+            <input type="number" id="timer-duration" value="30" min="5" style="width: 70px; margin: 0; padding: 5px;">
+        </div>
+    </div>
+
+    <div style="text-align: center;">
+        <p id="count-info" style="font-weight: bold; font-size: 1.1rem; margin-bottom: 15px;">...</p>
+        <button id="start-btn" class="btn btn-start" onclick="startQuiz()">ابدأ التدريب</button>
+    </div>
+</div>
+
+<div id="quiz-section" class="container">
+    <div id="timer-container"><div id="timer-bar"></div></div>
+    <p id="progress"></p>
+    <h2 id="q-text" style="line-height: 1.6; min-height: 60px; color: var(--primary);"></h2>
+    <button id="reveal-btn" class="btn btn-reveal" onclick="revealAnswer()">إظهار الإجابة</button>
+    <div id="answer-container" class="answer-box"><strong id="txt-label-ans">الإجابة الشارحة:</strong><p id="a-text" style="font-size: 1.1rem; margin-top: 10px; line-height: 1.6; white-space: pre-line;"></p></div>
+    <div id="eval-section" class="eval-btns" style="display:none;">
+        <button class="btn btn-wrong" id="txt-btn-wrong" onclick="processResult(false)">نسيت</button>
+        <button class="btn btn-correct" id="txt-btn-correct" onclick="processResult(true)">حفظت</button>
+    </div>
+</div>
+
+<div id="result-section" class="container">
+    <h2 id="txt-res-title">النتيجة النهائية</h2>
+    <p id="score-text" style="font-size: 3rem; font-weight: bold; color: var(--primary);"></p>
+    <button class="btn btn-start" id="txt-btn-restart" onclick="location.reload()">العودة</button>
+</div>
+
+<script>
+    const NAMA_MADDAH = "الحديث التحليلي";
+
+    const DAFTAR_SOAL = [
+  {
+    q: "الطهور بفتح الطاء",
+    a: "الاسم وهو الماء الذي يتطهر به"
+  },
+  {
+    q: "الطهور بضم الطاء",
+    a: "المصدر وهو الفعل أي حركة التطهر"
+  },
+  {
+    q: "حركة الفتح والضم في كلمات الوضوء والوقود والوجور والفطور",
+    a: "الفتح للاسم والضم للمصدر"
+  },
+  {
+    q: "حركة الفتح والضم في كلمة الغسل",
+    a: "الفتح للمصدر والضم للماء عكس الوضوء على ما حكاه الجوهري"
+  },
+  {
+    q: "معنى الطهور والطهارة في اللغة",
+    a: "النظافة والتنزه عن الأدناس"
+  },
+  {
+    q: "معنى الطهارة في الشرع والعرف",
+    a: "هي التنزه عن المستخبثات المحسوسة والمعنوية"
+  },
+  {
+    q: "معنى كلمة الشطر",
+    a: "النصف وتأتي بمعنى النحو والقصد"
+  },
+  {
+    q: "القول الراجح في معنى الطهور شطر الإيمان",
+    a: "الطهارة من المستخبثات الظاهرة والباطنة\nوالشطر: النصف\nوالإيمان: تصديق بالقلب وإقرار باللسان وعمل بالأركان"
+  },
+  {
+    q: "معنى والحمد لله تملأ الميزان",
+    a: "الثناء بأوصاف كماله، فإذا حمد الله حامد مستحضرا معناه امتلأ ميزانه من الحسنات"
+  },
+  {
+    q: "فائدة ذكر سبحان الله مع الحمد لله في الحديث",
+    a: "ملأت حسناته وثوابها زيادة على ذلك ما بين السماوات والأرض"
+  },
+  {
+    q: "معنى الصلاة نور في القلب",
+    a: "أن الصلاة إذا فعلت بشروطها نورت القلب بحيث تشرق فيه أنوار المكاشفات والمعارف"
+  },
+  {
+    q: "معنى الصلاة نور في الصراط",
+    a: "أنها تنور بين يدي مراعيها يوم القيامة في تلك الظلم"
+  },
+  {
+    q: "معنى الصلاة نور في وجه المصلي",
+    a: "أنها تنور وجه المصلي يوم القيامة فيكون ذا غرة وتحجيل"
+  },
+  {
+    q: "معنى الصدقة برهان",
+    a: "دليل على صحة إيمان المتصدق، أو على أنه ليس من المنافقين، أو على صحة محبته لله تعالى"
+  },
+  {
+    q: "المراد بالصبر في حديث الصبر ضياء",
+    a: "ينقسم إلى:\n1. الصبر على العبادات والمشاق والمصائب\n2. الصبر عن المخالفات والمنهيات كاتباع هوى النفس والشهوات"
+  },
+  {
+    q: "الفرق بين النور والضياء في الحديث",
+    a: "النور: هادٍ ومجرد عن الحرارة\nالضياء: فيه حرارة وإشراق وقوة لما في الصبر من مشقة"
+  },
+  {
+    q: "معنى القرآن حجة لك",
+    a: "أي إذا امتثلت أوامره واجتنبت نواهيه كان حجة لك في المواقف التي تسأل فيها عنه كمسألة الملكين في القبر"
+  },
+  {
+    q: "معنى القرآن حجة عليك",
+    a: "أي إذا لم تمتثل أوامره وتجتنب نواهيه احتج به عليك"
+  },
+  {
+    q: "معنى كلمة يغدو في الحديث",
+    a: "بمعنى يبكر، يقال غدا إذا خرج صباحا في مصالحه"
+  },
+  {
+    q: "معنى فبايع نفسه فمعتقها",
+    a: "الذي يبيع نفسه من الله بالطاعات وهو بيع آيل إلى عتق وحرية من النار"
+  },
+  {
+    q: "معنى فبايع نفسه فموبقها",
+    a: "الذي يبيع نفسه للشيطان باتباع الهوى فأوبقها أي أهلكها بالذنوب"
+  },
+  {
+    q: "اسم أبي مالك الأشعري",
+    a: "مختلف في اسمه فقيل:\n- كعب بن عاصم\n- الحارث بن الحارث\n- عمرو بن مالك\n- عبيد"
+  },
+  {
+    q: "تاريخ وفاة أبي مالك الأشعري",
+    a: "قدم أيام خيبر ونزل الشام وتوفي في خلافة عمر بن الخطاب رضي الله عنه"
+  },
+  {
+    q: "معنى الأعمال في قوله إنما الأعمال بالنية",
+    a: "الأعمال المتقرب بها إلى الله تعالى بدليل بقية الحديث"
+  },
+  {
+    q: "معنى إنما في قوله إنما الأعمال بالنيات",
+    a: "عموم مؤكد يفيد الحصر فصار في القوة كقوله لا عمل إلا بنية"
+  },
+  {
+    q: "المراد بنفي العمل في الحديث عند عدم النية",
+    a: "نفي الإجزاء والاعتداد بالعمل شرعا"
+  },
+  {
+    q: "فائدة ذكر وإنما لامرئ ما نوى بعد الجملة الأولى",
+    a: "تحقيق لاشتراط النية والإخلاص وبيان أن تعيين المنوى شرط"
+  },
+  {
+    q: "حكم تعيين الصلاة الفائتة المقضية في النية",
+    a: "يشترط أن ينوي كونها ظهرا أو غيرها ولا يكفي نية الصلاة الفائتة مطلقا"
+  },
+  {
+    q: "أصل الهجرة في اللغة",
+    a: "الترك"
+  },
+  {
+    q: "المراد بالهجرة في حديث النية",
+    a: "ترك الوطن والانتقال من دار الكفر إلى دار الإسلام"
+  },
+  {
+    q: "السبب الخاص في ذكر المرأة مع الدنيا في حديث الهجرة",
+    a: "أن رجلا هاجر ليتزوج امرأة يقال لها أم قيس فقيل له مهاجر أم قيس"
+  },
+  {
+    q: "الفائدة البلاغية في ذكر المرأة بعد الدنيا",
+    a: "التنبيه على زيادة التحذير منها وهو من باب ذكر الخاص بعد العام تنبيها على مزيته"
+  },
+  {
+    q: "معنى فهجرته إلى ما هاجر إليه",
+    a: "ليس له من هجرته إلا ما قصده وحظه ما نواه ولا نصيب له في الآخرة"
+  },
+  {
+    q: "اسم الراوي الأعلى لحديث النية",
+    a: "عمر بن الخطاب بن نفيل القرشي العدوي الفاروق أمير المؤمنين"
+  },
+  {
+    q: "تاريخ استشهاد عمر بن الخطاب رضي الله عنه",
+    a: "في ذي الحجة سنة ثلاث وعشرين هجرية وطعنه أبو لؤلؤة المجوسي"
+  },
+  {
+    q: "مدة خلافة عمر بن الخطاب رضي الله عنه",
+    a: "ولي الخلافة عشر سنين ونصف وكان عمره نحو ثمانين سنة وقيل غير ذلك"
+  },
+  {
+    q: "موقع حديث إنما الأعمال بالنيات عند الإمام الشافعي",
+    a: "هو ثلث الإسلام ويدخل في سبعين بابا من الفقه"
+  },
+  {
+    q: "حكم البدء بحديث النية عند تصنيف الكتب",
+    a: "ينبغي لمن صنف كتابا أن يبدأ فيه بهذا الحديث تنبيها للطالب على تصحيح النية"
+  },
+  {
+    q: "عدد المواضع التي ذكر فيها البخاري حديث النية في كتابه",
+    a: "ذكره البخاري في سبعة مواضع من كتابه"
+  },
+  {
+    q: "سلسلة الرواة الذين انفردوا بحديث النية في أوله",
+    a: "علقمة بن وقاص عن عمر، ثم محمد بن إبراهيم التيمي، ثم يحيى بن سعيد الأنصاري"
+  },
+  {
+    q: "حكم تواتر حديث إنما الأعمال بالنيات",
+    a: "ليس متواترا في أوله بل هو حديث فرد غريب مشهور صنف في رتبة الصحيح"
+  },
+  {
+    q: "أبرز أعمال عثمان بن عفان رضي الله عنه",
+    a: "تجهيز جيش العسرة في غزوة تبوك وشراء بئر رومة وجعلها للمسلمين"
+  },
+  {
+    q: "تاريخ وفاة عثمان بن عفان رضي الله عنه",
+    a: "قتل مظلوما شهيدا سنة خمس وثلاثين هجرية وهو يقرأ القرآن"
+  },
+  {
+    q: "تعريف حمران راوي حديث عثمان",
+    a: "حمران بن أبان مولى عثمان بن عفان، اشتراه زمن أبي بكر وهو ثقة مات سنة خمس وثلاثين"
+  },
+  {
+    q: "معنى فتوضأ في الحديث",
+    a: "أي فتأهب للوضوء وشرع فيه"
+  },
+  {
+    q: "المراد بغسل الكفين ثلاث مرات في حديث عثمان",
+    a: "هو تعديد الغسلات لا تعديد الغرفات إذ لم يجر للغرفات ذكر"
+  },
+  {
+    q: "تعريف المضمضة",
+    a: "وضع الماء في الفم وخضخضته فيه"
+  },
+  {
+    q: "تعريف الاستنشاق",
+    a: "استدعاء الماء بنفس الأنف وهو أول الفعل"
+  },
+  {
+    q: "تعريف الاستنثار",
+    a: "إيصال الماء إلى الأنف ونثره منه بنفس أو بأصبعيه وهو آخر الفعل"
+  },
+  {
+    q: "معنى الوضوء أسبغ",
+    a: "أي أكمل وأتم، والدرع السابغ هو الكامل"
+  },
+  {
+    q: "معنى المقاعد في حديث عثمان",
+    a: "دكاكين ومواضع كانوا يقعدون عليها وكانت بقرب المسجد"
+  },
+  {
+    q: "حكم تكرار مسح الرأس عند الشافعية",
+    a: "يستحب تكرار مسح الرأس ثلاثا بمياه متعددة"
+  },
+  {
+    q: "الراجح في عدد مرات مسح الرأس في الوضوء",
+    a: "أن تمسح مرة واحدة وهو مذهب مالك وأبي حنيفة لأن المسح شرع تخفيفا"
+  },
+  {
+    q: "اسم الراوي الأعلى عبد الله بن زيد",
+    a: "عبد الله بن زيد بن عاصم بن كعب الأنصاري المازني المدني وهو الذي قتل مسيلمة الكذاب"
+  },
+  {
+    q: "تاريخ وفاة عبد الله بن زيد رضي الله عنه",
+    a: "توفي سنة ثلاثة وستين هجرية في وقعة الحرة"
+  },
+  {
+    q: "معنى فأقبل بيديه وأدبر في مسح الرأس",
+    a: "بدأ بمقدم رأسه ثم ذهب بهما إلى قفاه ثم ردهما حتى رجع إلى المكان الذي بدأ منه"
+  },
+  {
+    q: "حكم غسل اليدين معا أو منفردين ابتداء",
+    a: "عند أشهب: يفرغ عليهما معا للنظافة\nعند ابن القاسم: يستحب البدء باليمنى"
+  },
+  {
+    q: "حكم الجمع بين المضمضة والاستنشاق",
+    a: "مستحب بأن يجمع بينهما من كف واحدة وثلاث غرفات وهو رواية عن مالك والشافعي"
+  },
+  {
+    q: "حد الوجه طولا عند الإمام مالك",
+    a: "من منابت شعر الرأس المعتاد إلى الذقن مطلقا للأمرد وللملتحي إلى آخر اللحية"
+  },
+  {
+    q: "حد الوجه عرضا عند الإمام مالك",
+    a: "من الأذن إلى الأذن وقيل من العذار إلى العذار"
+  },
+  {
+    q: "تعريف المرفق",
+    a: "هو موصول الذراع في العضد أي العظم الناتئ في آخر الذراع وسمي بذلك لأنه يرتفق عليه"
+  },
+  {
+    q: "حكم دخول المرفقين في غسل الوضوء",
+    a: "واجب لدخول الغاية فيما قبلها إذا كانت من جنس ذي الغاية"
+  },
+  {
+    q: "حكم الشفع والتثليث في غسلات الوضوء",
+    a: "يجوز الاقتصار على الواحدة إذا أسبغ، والاثنتان أفضل، والثلاث أفضل، والزيادة ممنوعة"
+  },
+  {
+    q: "حكم الاقتصار على غسلة واحدة للجاهل والعالم عند مالك",
+    a: "كره مالك ذلك للجاهل خوفا من تفريطه وللعالم لئلا يقتدي به الجاهل"
+  },
+  {
+    q: "معنى الباء في قوله تعالى فامسحوا برؤوسكم عند مالك",
+    a: "باء التعدية ولا يصح أن تكون للتبعيض فيجب عموم المسح"
+  },
+  {
+    q: "حكم تجديد الماء لمسح الرأس",
+    a: "سنة بماء غير فضل يديه خلافا للأوزاعي والحسن وعروة"
+  },
+  {
+    q: "حكم الترتيب والموالاة في الوضوء",
+    a: "الترتيب: الوجوب عند الشافعي والسنة عند مالك\nالموالاة: واجبة عند مالك مع الذكر والقدرة"
+  },
+  {
+    q: "أثر إسباغ الوضوء وحضور الصلاة الخاشعة",
+    a: "كفارة لما قبلها من الذنوب الصغيرة ما لم يؤت كبيرة وذلك الدهر كله"
+  },
+  {
+    q: "معنى النفل في قوله كانت صلاته ومشيه نافلة",
+    a: "النفل هو الزيادة وهو ما يعطيه الإمام زيادة على المغفرة"
+  },
+  {
+    q: "معنى لا يحدث فيهما نفسه في الصلاة",
+    a: "فيه الترغيب في الإخلاص والتحذير من غفلة الصلاة وأمور الدنيا"
+  },
+  {
+    q: "تعريف سالم راوي حديث عائشة",
+    a: "سالم بن عبد الله النصري المدني ويقال له سالم سبلان وهو صدوق"
+  },
+  {
+    q: "عدد الأحاديث التي روتها أم المؤمنين عائشة رضي الله عنها",
+    a: "ألفين ومائتين وعشرة أحاديث"
+  },
+  {
+    q: "تاريخ وفاة عائشة رضي الله عنها",
+    a: "توفيت سنة سبع وخمسين هجرية وقيل ثمان وخمسين هجرية ودفنت بالبقيع"
+  },
+  {
+    q: "معنى كلمة ويل",
+    a: "كلمة عذاب وقبوح وهلاك، وقيل هو واد في جهنم، وقيل صديد أهل النار"
+  },
+  {
+    q: "تعريف الأعقاب",
+    a: "جمع عقب وعقب كل شيء آخره وهو مؤخر القدم"
+  },
+  {
+    q: "تعريف العراقيب",
+    a: "جمع عرقوب وهو العصب الغليظ الموتر فوق عقب الإنسان"
+  },
+  {
+    q: "حكم غسل الرجلين في الوضوء",
+    a: "الفرض هو الغسل لا المسح وهو مذهب جمهور السلف وقراءة الخفض تؤول بالمسح على الخفين"
+  },
+  {
+    q: "سبب اختلاف العلماء في غسل الرجلين",
+    a: "اختلاف القراءات في قوله تعالى وأرجلكم بالخفض والنصب"
+  },
+  {
+    q: "ما يؤخذ من حديث ويل للأعقاب من النار",
+    a: "وجوب استيعاب جميع أجزاء محل الطهارة وتعليم الجاهل والرفق به"
+  },
+  {
+    q: "أكثر الصحابة حفظا للحديث ورواية له",
+    a: "أبو هريرة عبد الرحمن بن صخر الدوسي، روت عنه خمسة آلاف وثلاثمائة وأربعة وسبعون حديثا"
+  },
+  {
+    q: "معنى أشرع في العضد والساق",
+    a: "مد يده بالغسل إليهما لمقصد استيعاب المرفقين والكعبين بالغسل"
+  },
+  {
+    q: "تعريف نعيم بن عبد الله المجمر",
+    a: "مدني مولى آل عمر، سمي المجمر لأنه كان يجمر المسجد (يبخره)"
+  },
+  {
+    q: "معنى الغرة في اللغة والشرع",
+    a: "أصلها بياض في جبهة الفرس، واستعملت للنور الذي يعلو وجه المؤمن يوم القيامة"
+  },
+  {
+    q: "معنى التحجيل في اللغة والشرع",
+    a: "بياض في قوائم الفرس، واستعمل للنور الذي يعلو أعضاء الوضوء يوم القيامة"
+  },
+  {
+    q: "علام يدل تسليمه صلى الله عليه وسلم على أهل القبور",
+    a: "يدل على مشروعية ذلك وفيه معنى الدعاء لهم والترحم عليهم"
+  },
+  {
+    q: "حكم زيارة القبور للرجال",
+    a: "جائزة، والنهي عنه قد نسخ بحديث كنت نهيتكم عن زيارة القبور فزوروها"
+  },
+  {
+    q: "معنى وإنا إن شاء الله بكم لاحقون",
+    a: "قيل امتثالا للمشيئة، وقيل لاحقون في الإيمان، وقيل استثناء في الواجب للتفويض المطلق"
+  },
+  {
+    q: "علام يدل قوله وددت أنا قد رأينا إخواننا",
+    a: "يدل على جواز تمني لقاء الفضلاء والعلماء الصالحين"
+  },
+  {
+    q: "حكم من كان بعد الصحابة هل يكون أفضل منهم",
+    a: "الجمهور على أن فضيلة الصحبة لا يعدلها عمل فلا فضل لمن جاء بعدهم عليهم"
+  },
+  {
+    q: "معنى وأنا فرطهم على الحوض",
+    a: "أي متقدمهم إليه وسابقهم لإعداد ما يحتاجون إليه"
+  },
+  {
+    q: "معنى ألا هلم في الحديث",
+    a: "أي تعالوا وأقبلوا"
+  },
+  {
+    q: "القول الأظهر فيمن يذادون عن الحوض",
+    a: "المنافقون والمرتدون الذين تسلب عنهم سيما الوضوء ويحرمون من الحوض"
+  },
+  {
+    q: "معنى سحقا سحقا",
+    a: "أي بعدا بعدا والتكرار للتأكيد والزجر"
+  },
+  {
+    q: "أبعاد حوض النبي صلى الله عليه وسلم",
+    a: "أبعد من أيلة إلى عدن، وآنيته أكثر من عدد نجوم السماء، وماؤه أحلى من العسل"
+  },
+  {
+    q: "حكم إدخال المصحف إلى الخلاء",
+    a: "يحرم إدخال المصحف الخلاء لغير ضرورة تعظيما لكلام الله"
+  },
+  {
+    q: "الأشياء المنهي عنها عند الاستنجاء",
+    a: "الاستنجاء باليمين، أو بأقل من ثلاثة أحجار، أو برجيع، أو بعظم"
+  },
+  {
+    q: "سبب النهي عن الاستنجاء بالعظم والرجيع",
+    a: "لأن العظم طعام الجن والرجيع طعام دوابهم"
+  },
+  {
+    q: "حكم استقبال القبلة واستدبارها في الخلاء",
+    a: "النهي في الفضاء والجواز في البنيان لحديث ابن عمر، وهو مذهب مالك والشافعي"
+  },
+  {
+    q: "أثر حديث جرير بن عبد الله في المسح على الخفين",
+    a: "ثبت به أن المسح غير منسوخ لأنه أسلم بعد نزول آية المائدة"
+  },
+  {
+    q: "حكم تكبيرة الإحرام",
+    a: "واجبة وركن ولا ينعقد الدخول في الصلاة إلا بها"
+  },
+  {
+    q: "حكم الجمع بين التسميع والتحميد للمأموم",
+    a: "الشافعي يرى أن المأموم يجمع بينهما، والجمهور على أن المأموم يقول التحميد فقط"
+  },
+  {
+    q: "معنى الحوقلة عند قول المؤذن حي على الصلاة",
+    a: "تعني لا حول ولا قوة إلا بالله استعانة بالله على إجابة النداء"
+  },
+  {
+    q: "صفة الافتراش والتورك",
+    a: "الافتراش: في التشهد الأول (جلوس على اليسرى)\nالتورك: في التشهد الأخير (جلوس على الورك)"
+  },
+  {
+    q: "معنى قول عائشة إن أبا بكر رجل أسيف",
+    a: "أي رقيق القلب سريع الدمعة والبكاء عند القراءة"
+  },
+  {
+    q: "معنى قول النبي إنكن صواحب يوسف",
+    a: "إشارة إلى إظهار خلاف ما في الباطن في المشورة لمصلحة شخصية"
+  },
+  {
+    q: "حكم قراءة القرآن بالألحان والتطريب",
+    a: "كرهه مالك والعلماء إذا غير اللفظ أو أشبه ألحان المجون والباطل"
+  },
+  {
+    q: "معنى قوله ما أذن الله لشيء كإذنه لنبي",
+    a: "ما استمع الله وأصغى لقارئ القرآن إكراما له وإجزالا لثوابه"
+  }
+];
+
+    const i18n = {
+        id: { subtitle: "Latih Memori & Murojaah Mandiri", btnStart: "Mulai Latihan Acak", btnReveal: "Buka Jawaban", lAns: "Kunci Jawaban:", btnWrong: "Belum Hafal", btnCorrect: "Sudah Hafal", resTitle: "Hasil Evaluasi", btnRestart: "Kembali ke Menu Utama", countMsg: (n) => `${n} Soal siap diujikan.`, tOn: "Aktifkan Timer", tSec: "Durasi (detik):", fixedLabel: "Materi Kuliah:" },
+        ar: { subtitle: " منصة تدريب الذاكرة والمراجعة", btnStart: "ابدأ التدريب", btnReveal: "إظهار الإجابة", lAns: "الإجابة الشارحة:", btnWrong: "نسيت", btnCorrect: "حفظت", resTitle: "النتيجة النهائية", btnRestart: "العودة للقائمة", countMsg: (n) => `جاهز لـ ${n} من الأسئلة المقررة.`, tOn: "تفعيل المؤقت", tSec: "المدة (ثانية):", fixedLabel: "المادة :" },
+        en: { subtitle: "Memory Training & Self-Murojaah", btnStart: "Start Random Practice", btnReveal: "Show Answer", lAns: "Explanation Answer:", btnWrong: "Forgot", btnCorrect: "Memorized", resTitle: "Final Result", btnRestart: "Back to Menu", countMsg: (n) => `${n} exam questions ready to test.`, tOn: "Enable Timer", tSec: "Duration (sec):", fixedLabel: "Current Subject:" }
+    };
+
+    function toggleLangMenu() {
+        document.getElementById("langDropdown").classList.toggle("show");
+    }
+
+    function changeLang(lang) {
+        setLang(lang);
+        document.getElementById("current-lang-btn").innerText = "🌐 " + lang.toUpperCase();
+        document.getElementById("langDropdown").classList.remove("show");
+    }
+
+    window.addEventListener('click', function(event) {
+        if (!event.target.matches('.dropbtn')) {
+            const dropdowns = document.getElementsByClassName("dropdown-content");
+            for (let i = 0; i < dropdowns.length; i++) {
+                const openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    });
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('thoriqDarkMode', isDark);
+        document.getElementById('dark-toggle').innerText = isDark ? '☀️' : '🌙';
+    }
+
+    function setLang(lang) {
+        document.body.setAttribute('lang', lang);
+        const t = i18n[lang];
+        document.getElementById('txt-subtitle').innerText = t.subtitle;
+        document.getElementById('txt-fixed-label').innerText = t.fixedLabel;
+        document.getElementById('start-btn').innerText = t.btnStart;
+        document.getElementById('reveal-btn').innerText = t.btnReveal;
+        document.getElementById('txt-label-ans').innerText = t.lAns;
+        document.getElementById('txt-btn-wrong').innerText = t.btnWrong;
+        document.getElementById('txt-btn-correct').innerText = t.btnCorrect;
+        document.getElementById('txt-res-title').innerText = t.resTitle;
+        document.getElementById('txt-btn-restart').innerText = t.btnRestart;
+        document.getElementById('txt-timer-on').innerText = t.tOn;
+        document.getElementById('txt-timer-sec').innerText = t.tSec;
+        
+        document.getElementById('count-info').innerText = t.countMsg(DAFTAR_SOAL.length);
+    }
+
+    let currentQuestions = [], currentIdx = 0, score = 0, timerInterval;
+
+    function startTimer() {
+        const isTimerOn = document.getElementById('timer-toggle').checked;
+        const duration = parseInt(document.getElementById('timer-duration').value) || 30;
+        if (!isTimerOn) { document.getElementById('timer-container').style.display = 'none'; return; }
+
+        let timeLeft = duration;
+        document.getElementById('timer-container').style.display = 'block';
+        const bar = document.getElementById('timer-bar');
+        bar.style.transition = 'none'; bar.style.width = "100%"; bar.style.background = "var(--accent)";
+        setTimeout(() => { bar.style.transition = 'width 1s linear'; }, 50);
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const width = (timeLeft / duration) * 100;
+            bar.style.width = width + "%";
+            if (timeLeft <= 5) bar.style.background = "#e74c3c";
+            if (timeLeft <= 0) { clearInterval(timerInterval); revealAnswer(); }
+        }, 1000);
+    }
+
+    function startQuiz() {
+        currentQuestions = [...DAFTAR_SOAL].sort(() => Math.random() - 0.5);
+        currentIdx = 0; score = 0;
+        document.getElementById('setup-section').style.display = 'none';
+        document.getElementById('quiz-section').style.display = 'block';
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const data = currentQuestions[currentIdx];
+        document.getElementById('progress').innerText = `${currentIdx + 1} / ${currentQuestions.length}`;
+        document.getElementById('q-text').innerText = data.q;
+        document.getElementById('a-text').innerText = data.a;
+        document.getElementById('answer-container').style.display = 'none';
+        document.getElementById('eval-section').style.display = 'none';
+        document.getElementById('reveal-btn').style.display = 'block';
+        startTimer();
+    }
+
+    function revealAnswer() {
+        clearInterval(timerInterval);
+        document.getElementById('answer-container').style.display = 'block';
+        document.getElementById('eval-section').style.display = 'grid';
+        document.getElementById('reveal-btn').style.display = 'none';
+    }
+
+    function processResult(isCorrect) {
+        if(isCorrect) score++;
+        currentIdx++;
+        if(currentIdx < currentQuestions.length) showQuestion();
+        else {
+            document.getElementById('quiz-section').style.display = 'none';
+            document.getElementById('result-section').style.display = 'block';
+            document.getElementById('score-text').innerText = `${score} / ${currentQuestions.length}`;
+        }
+    }
+
+    window.onload = () => {
+        if (localStorage.getItem('thoriqDarkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('dark-toggle').innerText = '☀️';
+        }
+        document.getElementById('display-maddah-name').innerText = NAMA_MADDAH;
+        setLang('ar');
+    };
+</script>
+</body>
+</html>
